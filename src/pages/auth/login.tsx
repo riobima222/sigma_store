@@ -1,9 +1,55 @@
+import { signIn, useSession } from "next-auth/react";
 import Head from "next/head";
 import Link from "next/link";
-import { useState } from "react";
+import { useRouter } from "next/router";
+import { FormEvent, useEffect, useState } from "react";
 
 const LoginPage = () => {
   const [isLoading, setIsLoading] = useState(false);
+  const { data: session }: any = useSession();
+  const [alertMessage, setAlertMessage]: any = useState("");
+  const [isLoginSucces, setIsLoginSucces] = useState(false);
+  const [loginFailed, setLoginFailed] = useState(false);
+
+  const { push } = useRouter();
+
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setIsLoading(true);
+    const form = e.target as HTMLFormElement;
+    const res = await signIn("credentials", {
+      redirect: false,
+      username: form.username.value,
+      password: form.password.value,
+    });
+    if (res?.ok) {
+      setIsLoading(false);
+      setAlertMessage("Berhasil Login");
+      setIsLoginSucces(true);
+      setTimeout(() => {
+        setIsLoginSucces(false);
+        setTimeout(() => {
+          push("/");
+        }, 500);
+      }, 3000);
+    } else {
+      setIsLoading(false);
+      setAlertMessage(res?.error);
+      setLoginFailed(true);
+      if (res?.error === "not account") {
+        form.reset();
+      } else {
+        form.password.value = "";
+      }
+      setTimeout(() => {
+        setLoginFailed(false);
+      }, 3000);
+    }
+    console.log(res);
+  };
+  useEffect(() => {
+    console.log(session);
+  }, [session]);
   return (
     <div className="text-black min-h-screen flex flex-col justify-center items-center px-3 relative">
       <Head>
@@ -15,7 +61,10 @@ const LoginPage = () => {
       </Head>
       <div className="max-w-[26em] items-center flex flex-col w-full">
         <h1 className="text-3xl font-bold">Sigma - Login</h1>
-        <form className="w-full my-4 border-2 border-slate-300 p-6">
+        <form
+          onSubmit={(e) => handleSubmit(e)}
+          className="w-full my-4 border-2 border-slate-300 p-6"
+        >
           <div>
             <label className="block mb-1 ps-2 text-lg" htmlFor="username">
               Username
@@ -49,6 +98,9 @@ const LoginPage = () => {
           >
             {isLoading ? "Loading..." : "Login"}
           </button>
+          <p className="text-red-500 text-center mt-2 text-sm tracking-wider">
+            {loginFailed ? `${alertMessage} !!!` : ""}
+          </p>
         </form>
         <span>
           {`Don't have an account`} ?{" "}
@@ -59,7 +111,9 @@ const LoginPage = () => {
       </div>
       <div
         role="alert"
-        className={`alert alert-success bg-slate-300 border-none absolute bottom-2 right-0 h-[2.7em] flex items-center px-3 max-w-[40em]`}
+        className={`${
+          isLoginSucces ? "block" : "hidden"
+        } alert alert-success bg-slate-300 border-none absolute bottom-2 right-0 h-[2.7em] flex items-center px-3 max-w-[40em]`}
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -74,26 +128,7 @@ const LoginPage = () => {
             d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
           />
         </svg>
-        <span>{`cek`}</span>
-      </div>
-      <div
-        role="alert"
-        className={`alert alert-error bg-[#ba0704] border-none absolute bottom-2 right-0 h-[2.7em] flex items-center px-3 max-w-[40em]`}
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          className="stroke-current shrink-0 h-6 w-6"
-          fill="none"
-          viewBox="0 0 24 24"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth="2"
-            d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"
-          />
-        </svg>
-        <span>register</span>
+        <span>{alertMessage}</span>
       </div>
     </div>
   );

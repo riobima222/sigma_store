@@ -67,3 +67,23 @@ export const signUp = async (userData: UserData) => {
     }
   }
 };
+
+export const userLogin = async (data: {
+  username: string;
+  password: string;
+}) => {
+  const q = query(
+    collection(firestore, "users"),
+    where("username", "==", data.username)
+  );
+  const snapshot = await getDocs(q);
+  const user = snapshot.docs.map((doc) => ({
+    id: doc.id,
+    ...doc.data(),
+  }));
+  if (user.length > 0) {
+    return user[0];
+  } else {
+    return null;
+  }
+};
