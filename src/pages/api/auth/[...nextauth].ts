@@ -1,6 +1,7 @@
 import { userLogin } from "@/lib/firebase/services";
 import { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
+import GoogleProvider from "next-auth/providers/google";
 import bcrypt from "bcrypt";
 import NextAuth from "next-auth/next";
 
@@ -43,24 +44,51 @@ const authOption: NextAuthOptions = {
         }
       },
     }),
+    GoogleProvider({
+      clientId: process.env.GOOGLE_CLIENT_ID || "",
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
+      authorization: {
+        params: {
+          redirect_uri: process.env.NEXTAUTH_URL + "/api/auth/callback/google",
+        },
+      },
+    }),
   ],
   callbacks: {
     async jwt({ token, account, user }: any) {
       if (account?.provider === "credentials") {
-        (token.email = user.email),
-          (token.username = user.username),
-          (token.role = user.role),
-          (token.phone = user.phone);
+        token.username = user.username;
+        token.email = user.email;
+        token.gender = user.gender;
+        token.role = user.role;
+      }
+      if (account?.provider === "google") {
+        token.username = user.name;
+        token.email = user.email;
+        token.image = user.image;
+        token.role = "member";
+        token.login = "google";
+        const userGoogle = {
+          username: user.name || "",
+          email: user.email || "",
+          image: user.image || "",
+          role: "member",
+          login: "google",
+        };
       }
       return token;
     },
     async session({ session, token }: any) {
-      (session.user.username = token.username),
-        (session.user.email = token.email),
-        (session.user.role = token.role),
-        (session.user.phone = token.phone);
+      session.user.username = token.username || "",
+        session.user.email = token.email || "",
+        session.user.role = token.role || "",
+        session.user.phone = token.phone || "",
+        session.user.login = token.login || "credentials";
       return session;
     },
+  },
+  pages: {
+    signIn: "/auth/login",
   },
 };
 

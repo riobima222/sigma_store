@@ -6,13 +6,14 @@ import {
   getDocs,
   getFirestore,
   query,
+  updateDoc,
   where,
 } from "firebase/firestore";
 import app from "./init";
 import bcrypt from "bcrypt";
 
 // Interface
-import { UserData } from "./interface";
+import { UserData, UserGoogle } from "./interface";
 
 const firestore = getFirestore(app);
 
@@ -87,3 +88,16 @@ export const userLogin = async (data: {
     return null;
   }
 };
+
+const loginGoogle = async (data: UserGoogle) => {
+  const q = query(collection(firestore, 'users'), where('email', '==', data.email));
+  const snapshot = await getDocs(q);
+  const user = snapshot.docs.map((doc) => ({
+    id: doc.id,
+    ...doc.data(),
+  }))
+  if(user.length > 0) {
+    await updateDoc(doc(firestore, "users", user[0].id), data) 
+  }
+  return {status: 200}
+}

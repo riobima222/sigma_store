@@ -50,14 +50,16 @@ const LoginPage = () => {
   useEffect(() => {
     console.log(session);
   }, [session]);
+
+  const handleGoogleLogin = () => {
+    setIsLoading(true);
+    signIn("google", { callbackUrl: "/", redirect: false });
+  };
   return (
     <div className="text-black min-h-screen flex flex-col justify-center items-center px-3 relative">
       <Head>
-        <title>Sigma - Register</title>
-        <meta
-          name="description"
-          content="make your account for use sigma application"
-        />
+        <title>Sigma - login</title>
+        <meta name="description" content="please login first" />
       </Head>
       <div className="max-w-[26em] items-center flex flex-col w-full">
         <h1 className="text-3xl font-bold">Sigma - Login</h1>
@@ -97,6 +99,14 @@ const LoginPage = () => {
             disabled={isLoading}
           >
             {isLoading ? "Loading..." : "Login"}
+          </button>
+          <button
+            className="h-12 w-full bg-black text-white rounded-md mt-3"
+            type="button"
+            disabled={isLoading}
+            onClick={() => handleGoogleLogin()}
+          >
+            {isLoading ? "Loading..." : "Login GOOGLE"}
           </button>
           <p className="text-red-500 text-center mt-2 text-sm tracking-wider">
             {loginFailed ? `${alertMessage} !!!` : ""}
