@@ -1,21 +1,26 @@
-import { signIn, useSession } from "next-auth/react";
+import Button from "@/components/ui/button";
+import Input from "@/components/ui/input";
+import Label from "@/components/ui/label";
+import { signIn } from "next-auth/react";
 import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useState } from "react";
+import { FaGoogle } from "react-icons/fa";
 
 const LoginPage = () => {
   const [isLoading, setIsLoading] = useState(false);
-  const { data: session }: any = useSession();
+  const [isLoadingGoogle, setIsLoadingGoogle] = useState(false);
+  const [disabledButton, setDisabledButton] = useState(false);
   const [alertMessage, setAlertMessage]: any = useState("");
   const [isLoginSucces, setIsLoginSucces] = useState(false);
   const [loginFailed, setLoginFailed] = useState(false);
-
   const { push } = useRouter();
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
+    setDisabledButton(true);
     const form = e.target as HTMLFormElement;
     const res = await signIn("credentials", {
       redirect: false,
@@ -29,11 +34,12 @@ const LoginPage = () => {
       setTimeout(() => {
         setIsLoginSucces(false);
         setTimeout(() => {
-          push("/");
+          push("/admin");
         }, 500);
       }, 3000);
     } else {
       setIsLoading(false);
+      setDisabledButton(false);
       setAlertMessage(res?.error);
       setLoginFailed(true);
       if (res?.error === "not account") {
@@ -45,14 +51,11 @@ const LoginPage = () => {
         setLoginFailed(false);
       }, 3000);
     }
-    console.log(res);
   };
-  useEffect(() => {
-    console.log(session);
-  }, [session]);
 
   const handleGoogleLogin = () => {
-    setIsLoading(true);
+    setDisabledButton(true);
+    setIsLoadingGoogle(true);
     signIn("google", { callbackUrl: "/", redirect: false });
   };
   return (
@@ -68,46 +71,38 @@ const LoginPage = () => {
           className="w-full my-4 border-2 border-slate-300 p-6"
         >
           <div>
-            <label className="block mb-1 ps-2 text-lg" htmlFor="username">
-              Username
-            </label>
-            <input
+            <Label htmlFor="username">username</Label>
+            <Input
               id="username"
-              className="h-12 bg-slate-200 w-full px-2 py-1 focus:outline-none text-sm"
               type="text"
               name="username"
-              placeholder="example..."
-              required
+              placeholder="example"
+              className="h-12"
             />
           </div>
           <div>
-            <label className="block mb-1 ps-2 text-lg" htmlFor="password">
-              Password
-            </label>
-            <input
+            <Label htmlFor="password">password</Label>
+            <Input
               id="password"
-              className="h-12 bg-slate-200 w-full px-2 py-1 focus:outline-none text-sm"
               type="password"
               name="password"
               placeholder="******"
-              required
+              className="h-12"
             />
           </div>
-          <button
-            className="h-12 w-full bg-black text-white rounded-md mt-3"
-            type="submit"
-            disabled={isLoading}
-          >
+          <Button type="submit" disabled={disabledButton}>
             {isLoading ? "Loading..." : "Login"}
-          </button>
-          <button
-            className="h-12 w-full bg-black text-white rounded-md mt-3"
+          </Button>
+          <Button
             type="button"
-            disabled={isLoading}
-            onClick={() => handleGoogleLogin()}
+            onClick={handleGoogleLogin}
+            className="mt-2 flex justify-center items-center"
           >
-            {isLoading ? "Loading..." : "Login GOOGLE"}
-          </button>
+            <FaGoogle />
+            <span className="ms-2">
+              {isLoadingGoogle ? "Loading..." : "Google Login"}
+            </span>
+          </Button>
           <p className="text-red-500 text-center mt-2 text-sm tracking-wider">
             {loginFailed ? `${alertMessage} !!!` : ""}
           </p>
@@ -127,7 +122,7 @@ const LoginPage = () => {
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
-          className="stroke-current shrink-0 h-6 w-6"
+          className="h-6 w-6 shrink-0 stroke-current"
           fill="none"
           viewBox="0 0 24 24"
         >

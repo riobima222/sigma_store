@@ -1,0 +1,19 @@
+.table {
+  width: 100%;
+  box-shadow: 1px 1px 5px 5px rgba(0, 0, 0, 0.2);
+}
+.table th {
+  background-color: #cbd5e1;
+  border: 2px solid white;
+}
+.button {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+.button button {
+  padding: 5px 10px;
+  color: white;
+  border-radius: 7px;
+  font-size: 14px;
+}

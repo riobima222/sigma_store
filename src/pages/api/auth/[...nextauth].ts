@@ -1,9 +1,10 @@
-import { userLogin } from "@/lib/firebase/services";
+import { loginGoogle, signUp, signUpGoogle, userLogin } from "@/lib/firebase/services";
 import { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
 import bcrypt from "bcrypt";
 import NextAuth from "next-auth/next";
+import jwt from "jsonwebtoken";
 
 const authOption: NextAuthOptions = {
   session: {
@@ -57,17 +58,13 @@ const authOption: NextAuthOptions = {
   callbacks: {
     async jwt({ token, account, user }: any) {
       if (account?.provider === "credentials") {
+        token.id = user.id;
         token.username = user.username;
         token.email = user.email;
         token.gender = user.gender;
         token.role = user.role;
       }
       if (account?.provider === "google") {
-        token.username = user.name;
-        token.email = user.email;
-        token.image = user.image;
-        token.role = "member";
-        token.login = "google";
         const userGoogle = {
           username: user.name || "",
           email: user.email || "",
@@ -75,15 +72,27 @@ const authOption: NextAuthOptions = {
           role: "member",
           login: "google",
         };
+        const googleUser: any = await signUpGoogle(userGoogle);
+        token.id = googleUser.id;
+        token.username = googleUser.username;
+        token.email = googleUser.email;
+        token.image = googleUser.image;
+        token.role = googleUser.role;
+        token.login = googleUser.login;
       }
       return token;
     },
     async session({ session, token }: any) {
-      session.user.username = token.username || "",
-        session.user.email = token.email || "",
-        session.user.role = token.role || "",
-        session.user.phone = token.phone || "",
-        session.user.login = token.login || "credentials";
+      (session.id = token.id || ""),
+      (session.user.username = token.username || ""),
+        (session.user.email = token.email || ""),
+        (session.user.role = token.role || ""),
+        (session.user.phone = token.phone || ""),
+        (session.user.login = token.login || "credentials");
+      const accessToken = jwt.sign(token, process.env.NEXTAUTH_SECRET || "", {
+        algorithm: "HS256",
+      });
+      session.accessToken = accessToken;
       return session;
     },
   },

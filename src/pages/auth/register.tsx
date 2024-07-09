@@ -1,4 +1,7 @@
-import axios from "axios";
+import Button from "@/components/ui/button";
+import Input from "@/components/ui/input";
+import Label from "@/components/ui/label";
+import { authServices } from "@/services/auth";
 import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -16,12 +19,13 @@ const RegisterPage = () => {
     setIsLoading(true);
     e.preventDefault();
     const form = e.target as HTMLFormElement;
-    const response = await axios.post(`/api/user/register`, {
+    const data = {
       username: form.username.value,
       email: form.email.value,
       password: form.password.value,
       phone: form.phone.value,
-    });
+    };
+    const response = await authServices.registerAccount(data);
     if (response.data.statusCode === 200) {
       setAlertMessage(response.data.message);
       setAlertType("success");
@@ -32,7 +36,6 @@ const RegisterPage = () => {
         push("/auth/login");
       }, 4000);
     } else if (response.data.statusCode === 400) {
-      console.log(`masuk kesini`);
       setAlertMessage(response.data.message);
       setAlertType("failed");
       form.username.value = "";
@@ -64,65 +67,49 @@ const RegisterPage = () => {
           className="w-full my-4 border-2 border-slate-300 p-6"
         >
           <div>
-            <label className="block mb-1 ps-2 text-lg" htmlFor="username">
-              Username
-            </label>
-            <input
+            <Label htmlFor="username">Username</Label>
+            <Input
               id="username"
-              className="h-12 bg-slate-200 w-full px-2 py-1 focus:outline-none text-sm"
               type="text"
               name="username"
-              placeholder="example..."
-              required
+              placeholder="example.."
+              className="h-12 bg-slate-100"
             />
           </div>
           <div>
-            <label className="block mb-1 ps-2 text-lg" htmlFor="email">
-              Email
-            </label>
-            <input
+            <Label htmlFor="email">Email</Label>
+            <Input
               id="email"
-              className="h-12 bg-slate-200 w-full px-2 py-1 focus:outline-none text-sm"
               type="email"
               name="email"
               placeholder="example@ex.com"
-              required
+              className="h-12 bg-slate-100"
             />
           </div>
           <div>
-            <label className="block mb-1 ps-2 text-lg" htmlFor="password">
-              Password
-            </label>
-            <input
+            <Label htmlFor="password">Password</Label>
+            <Input
               id="password"
-              className="h-12 bg-slate-200 w-full px-2 py-1 focus:outline-none text-sm"
               type="password"
               name="password"
               placeholder="******"
-              required
+              className="h-12 bg-slate-100"
             />
           </div>
           <div>
-            <label className="block mb-1 ps-2 text-lg" htmlFor="phone">
-              Phone
-            </label>
-            <input
+            <Label htmlFor="phone">Phone</Label>
+            <Input
               id="phone"
-              className="h-12 bg-slate-200 w-full px-2 py-1 focus:outline-none text-sm"
               type="tel"
               name="phone"
-              placeholder="08*********"
-              required
-              pattern="[0-9]*"
+              placeholder="081234..."
+              className="h-12 bg-slate-100"
+              pattern="^(08)[0-9]{9,12}$"
             />
           </div>
-          <button
-            className="h-12 w-full bg-black text-white rounded-md mt-3"
-            type="submit"
-            disabled={submitButton}
-          >
+          <Button type="submit" disabled={submitButton}>
             {isLoading ? "Loading..." : "Register"}
-          </button>
+          </Button>
         </form>
         <span>
           Have an account ?{" "}

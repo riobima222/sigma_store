@@ -1,0 +1,21 @@
+.table {
+  border: 2px solid black;
+  border-collapse: collapse;
+  width: 100%;
+}
+.table th,
+.table td {
+  border: 1px solid black;
+  padding: 10px 10px;
+}
+.button {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+.button button {
+  padding: 5px 10px;
+  color: white;
+  border-radius: 7px;
+  font-size: 14px;
+}

@@ -3,16 +3,26 @@ export interface UserData {
   username?: string;
   name?: string;
   phone: string;
+  image?: string;
   password: string;
   role?: string;
+  created_at: Date;
+  updated_at: Date;
 }
 
 export interface UserGoogle {
-  name: string;
+  username: string;
   email: string;
-  gender: string;
   image?: string;
   role: string;
   login: string;
   [key: string]: any;
+}
+
+export interface GoogleUser {
+  username: string;
+  email: string;
+  image: string;
+  role: string;
+  login: string;
 }
