@@ -1,77 +1,59 @@
-import { FormEvent, useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import styles from "./product.module.css";
-import { productsServices, userServices } from "@/services/auth";
+import { productsServices } from "@/services/auth";
 import { modalContext } from "@/context/modalAppears";
-import { useSession } from "next-auth/react";
-import { DeleteAlertContext } from "@/context/deleteAlert";
 import { AlertContext } from "../../../context/alert";
-import { AlertMessageContext } from "@/context/alertMessage";
 import Image from "next/image";
 import { convertPrice } from "@/utils/convertPrice";
 import Button from "@/components/ui/button";
+import ModalAddProduct from "../modalAddProduct/modalAddProduct";
+import { AlertMessageContext } from "@/context/alertMessage";
+import ModalUpdateProduct from "../modalUpdateProduct/modalUpdateProduct";
 
 // Icons
 import { HiMiniPlus } from "react-icons/hi2";
-import ModalAddProduct from "../modalAddProduct/modalAddProduct";
+import { FiEdit } from "react-icons/fi";
+import { FaRegTrashCan } from "react-icons/fa6";
+import { ModalUpdateProductContext } from "@/context/modalUpdateProduct";
+import { useSession } from "next-auth/react";
+import Confirm from "../confirm";
+import { DeleteProductAlertContext } from "@/context/deleteProductAlert";
+import Alert from "@/components/alert";
 
 const AdminProducts = () => {
-  const { data: session }: any = useSession();
   const [products, setProducts] = useState([]);
-  const [userData, setUserData]: any = useState({});
+  const [product, setProduct] = useState({});
+  const [productURLImage, setProductURLImage] = useState("");
+  const [productID, setProductID] = useState("");
+
+  // CONTEXT :
   const { modalAppear, setModalAppear }: any = useContext(modalContext);
-  const [modalLoading, setModalLoading] = useState(false);
-  const { alert, setAlert }: any = useContext(AlertContext);
-  const { alertMessage, setAlertMessage }: any =
-    useContext(AlertMessageContext);
-  const { deleteAlert, setDeleteAlert }: any = useContext(DeleteAlertContext);
+  const { deleteProductAlert, setDeleteProductAlert }: any = useContext(
+    DeleteProductAlertContext
+  );
+  const { modalUpdateProductAppear, setModalUpdateProductAppear }: any =
+    useContext(ModalUpdateProductContext);
+  const { alert }: any = useContext(AlertContext);
+  const { alertMessage }: any = useContext(AlertMessageContext);
   useEffect(() => {
     const getAdminProducts = async () => {
       const response = await productsServices.getAllProducts();
       setProducts(response.data.data);
     };
     getAdminProducts();
-  }, [modalAppear, alert]);
-  const handleUpdateButton = (user: any) => {
+  }, [modalAppear, alert, modalUpdateProductAppear]);
 
-  };
-
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setModalLoading(true);
-    if (session?.user?.username === userData.username) {
-    }
-    const form = e.target as HTMLFormElement;
-    const data = {
-      username: form.username.value,
-      role: form.select.value,
-    };
-    const response: any = await userServices.updateUser(
-      data,
-      session.accessToken
-    );
-    if (response.data.statusCode === 200) {
-      setModalAppear(false);
-      setTimeout(() => {
-        setAlert(true);
-        setAlertMessage(response.data.message);
-      }, 300);
-      setTimeout(() => {
-        setAlert(false);
-        setAlertMessage("");
-      }, 3000);
-      setModalLoading(false);
-    } else {
-      console.log(response);
-      setModalLoading(false);
-    }
-  };
-  const handleDeleteButton = (user: any) => {
-    setUserData(user);
-    setDeleteAlert(true);
+  const handleDeleteProduct = async (
+    productID: string,
+    productURLImage: string
+  ) => {
+    setDeleteProductAlert(true);
+    setProductID(productID);
+    setProductURLImage(productURLImage);
   };
   return (
     <>
-      <aside className="w-full p-4">
+      <aside className="w-full p-4 h-screen overflow-auto">
         <h1 className="text-xl font-bold mb-2">User Management</h1>
         <Button
           type="button"
@@ -102,21 +84,24 @@ const AdminProducts = () => {
                   </div>
                 </div>
               </th>
+              <th>Action</th>
             </tr>
           </thead>
           <tbody>
             {products &&
               products.map((product: any, i: number) => (
-                <tr key={i} className={``}>
+                <tr key={i} className={`${i % 2 === 0 ? "" : "bg-gray-200"}`}>
                   <td className="text-center py-4">{i + 1}</td>
-                  <td className="flex justify-center items-center">
-                    <Image
-                      src={product.image}
-                      alt={`${product.name}-image`}
-                      width={200}
-                      height={200}
-                      className="object-cover h-full w-[100px]"
-                    />
+                  <td className="py-3">
+                    <div className="mx-auto w-[7em] h-[7em]">
+                      <Image
+                        src={product.image}
+                        alt={`${product.name}-image`}
+                        width={200}
+                        height={200}
+                        className="object-cover h-full w-[w-full]"
+                      />
+                    </div>
                   </td>
                   <td className="text-center py-4">{product.name}</td>
                   <td className="text-center py-4">{product.category}</td>
@@ -135,12 +120,43 @@ const AdminProducts = () => {
                       </div>
                     ))}
                   </td>
+                  <td className="text-center py-4">
+                    <div className="flex gap-3 justify-center items-center">
+                      <span
+                        onClick={() => {
+                          setModalUpdateProductAppear(true);
+                          setProduct(product);
+                        }}
+                        className="bg-yellow-300 cursor-pointer inline-block h-[2em] w-[2em] flex justify-center items-center"
+                      >
+                        <FiEdit className="text-lg text-black" />
+                      </span>
+                      <span
+                        onClick={() =>
+                          handleDeleteProduct(product.id, product.image)
+                        }
+                        className="bg-red-500 cursor-pointer inline-block h-[2em] w-[2em] flex justify-center items-center"
+                      >
+                        <FaRegTrashCan className="text-lg text-white" />
+                      </span>
+                    </div>
+                  </td>
                 </tr>
               ))}
           </tbody>
         </table>
+        <Alert alert={alert} alertMessage={alertMessage} />
       </aside>
       {modalAppear && <ModalAddProduct />}
+      {modalUpdateProductAppear && <ModalUpdateProduct product={product} />}
+      <Confirm
+        productID={productID}
+        productURLImage={productURLImage}
+        from="adminProduct"
+        className={`${
+          deleteProductAlert ? "block" : "hidden"
+        } bg-slate-300 border-none absolute bottom-2 right-0 h-[2.9em] flex items-center justify-between px-3 max-w-[40em]`}
+      />
     </>
   );
 };

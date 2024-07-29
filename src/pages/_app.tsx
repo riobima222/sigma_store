@@ -9,6 +9,11 @@ import type { AppProps } from "next/app";
 import { Poppins } from "next/font/google";
 import { usePathname } from "next/navigation";
 import ModalConfirmProvider from "@/context/modalConfirm";
+import ImageProductProvider from "@/context/imageProduct";
+import ModalUpdateProductProvider from "@/context/modalUpdateProduct";
+import DeleteProductAlertProvider from "@/context/deleteProductAlert";
+import CartFinishProvider from "@/context/cartFinish";
+import TotalPriceProvider from "@/context/totalPrice";
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -28,12 +33,25 @@ export default function App({
         <AlertProvider>
           <AlertMessageProvider>
             <ModalConfirmProvider>
-            <SessionProvider session={session}>
-              <div className={poppins.className}>
-                {!disableNavbar.includes(pathname.split("/")[1]) && <Navbar />}
-                <Component {...pageProps} />
-              </div>
-            </SessionProvider>
+              <ImageProductProvider>
+                <ModalUpdateProductProvider>
+                  <DeleteProductAlertProvider>
+                    <CartFinishProvider>
+                      <TotalPriceProvider>
+                        <SessionProvider session={session}>
+                          <div className={poppins.className}>
+                            {pathname &&
+                              !disableNavbar.includes(
+                                pathname.split("/")[1]
+                              ) && <Navbar />}
+                            <Component {...pageProps} />
+                          </div>
+                        </SessionProvider>
+                      </TotalPriceProvider>
+                    </CartFinishProvider>
+                  </DeleteProductAlertProvider>
+                </ModalUpdateProductProvider>
+              </ImageProductProvider>
             </ModalConfirmProvider>
           </AlertMessageProvider>
         </AlertProvider>

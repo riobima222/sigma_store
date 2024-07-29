@@ -14,7 +14,7 @@ import app from "./init";
 import bcrypt, { compare, hash } from "bcrypt";
 
 // Interface
-import { GoogleUser, UserData, UserGoogle } from "./interface";
+import { AlamatBaru, GoogleUser, UserData, UserGoogle } from "./interface";
 
 const firestore = getFirestore(app);
 
@@ -34,6 +34,17 @@ export const retriveData = async (collectionName: string) => {
     return data;
   });
   return fixData;
+};
+
+export const retriveProducts = async () => {
+  const snapshot = await getDocs(collection(firestore, "products"));
+  const data = snapshot.docs.map((doc) => {
+    return {
+      id: doc.id,
+      ...doc.data(),
+    };
+  });
+  return data;
 };
 
 export const retriveDataByID = async (collectionName: string, id: string) => {
@@ -183,6 +194,45 @@ export const deleteUser = async (username: string) => {
   }
 };
 
+export const addAddress = async (
+  tambahALamatBaru: AlamatBaru,
+  userID: string
+) => {
+  try {
+    const snapshot = await getDoc(doc(firestore, "users", userID));
+    const user: any = snapshot.data();
+    if (user.address) {
+      tambahALamatBaru.isMain = false;
+      await updateDoc(doc(firestore, "users", userID), {
+        address: [...user.address, tambahALamatBaru],
+      });
+    } else {
+      tambahALamatBaru.isMain = true;
+      await updateDoc(doc(firestore, "users", userID), {
+        address: [tambahALamatBaru],
+      });
+    }
+    return true;
+  } catch (err) {
+    return false;
+  }
+};
+
+export const updateAddress = async (
+  userID: string,
+  newAllAddress: any
+) => {
+  try {
+    await updateDoc(doc(firestore, "users", userID), {
+      address: newAllAddress
+    })
+    return true;
+  } catch (err) {
+    console.log("ada error",err);
+    return false;
+  }
+}
+
 export const updateDataProfile = async (newDataProfile: {
   username: string;
   newUsername: string;
@@ -209,13 +259,10 @@ export const updateDataProfile = async (newDataProfile: {
 };
 
 export const changePassword = async (
-  username: string,
+  email: string,
   password: { oldPassword: string; newPassword: string }
 ) => {
-  const q = query(
-    collection(firestore, "users"),
-    where("username", "==", username)
-  );
+  const q = query(collection(firestore, "users"), where("email", "==", email));
   const snapshot = await getDocs(q);
   const users: any = snapshot.docs.map((doc) => ({
     id: doc.id,
@@ -229,6 +276,16 @@ export const changePassword = async (
     });
     return true;
   } else {
+    return false;
+  }
+};
+
+// Products
+export const addProduct = async (data: any) => {
+  try {
+    const docRef = await addDoc(collection(firestore, "products"), data);
+    return docRef.id;
+  } catch (err) {
     return false;
   }
 };
@@ -247,6 +304,105 @@ export const updateProfile = async (username: string, imageURL: string) => {
   try {
     await updateDoc(doc(firestore, "users", users[0].id), {
       image: imageURL,
+    });
+    return true;
+  } catch (err) {
+    return false;
+  }
+};
+
+export const updateProductImage = async (data: {
+  imageUrl: string;
+  productID: string;
+}) => {
+  try {
+    await updateDoc(doc(firestore, "products", data.productID), {
+      image: data.imageUrl,
+    });
+    return true;
+  } catch (err) {
+    return false;
+  }
+};
+
+export const updateProduct = async (data: {
+  productID: string;
+  product: any;
+}) => {
+  try {
+    await updateDoc(doc(firestore, "products", data.productID), data.product);
+    return true;
+  } catch (err) {
+    return false;
+  }
+};
+
+export const deleteProduct = async (productID: string) => {
+  try {
+    await deleteDoc(doc(firestore, "products", productID));
+    return true;
+  } catch (err) {
+    return false;
+  }
+};
+
+// HANDLE CART
+export const addToCart = async (
+  data: { productID: string; size: string; qwt: string },
+  userID: string
+) => {
+  const snapshot = await getDoc(doc(firestore, "users", userID));
+  const cart: any = snapshot.data();
+  if (cart.cart) {
+    const check: any = cart.cart.find((item: any) => item.size === data.size);
+    const check2: any = cart.cart.find(
+      (item: any) => item.productID === data.productID
+    );
+    if (check && check2) {
+      await updateDoc(doc(firestore, "users", userID), {
+        cart: cart.cart.map((item: any) => {
+          if (item.size === data.size && item.productID === data.productID) {
+            return { ...item, qwt: parseInt(item.qwt) + parseInt(data.qwt) };
+          } else {
+            return item;
+          }
+        }),
+      });
+    } else {
+      await updateDoc(doc(firestore, "users", userID), {
+        cart: [...cart.cart, data],
+      });
+    }
+    return true;
+  } else {
+    await updateDoc(doc(firestore, "users", userID), {
+      cart: [data],
+    });
+    return true;
+  }
+};
+
+export const getCarts: any = async (userID: string) => {
+  try {
+    console.log("masuk kesini");
+    console.log(userID);
+    const snapshot = await getDoc(doc(firestore, "users", userID));
+    const user: any = snapshot.data();
+    if (user.cart) {
+      return { status: true, cart: user.cart };
+    } else return "kosong";
+  } catch (err) {
+    return false;
+  }
+};
+
+export const cartDelete = (data: {
+  userID: string;
+  newCarts: { productID: string; qwt: number; size: string }[];
+}) => {
+  try {
+    updateDoc(doc(firestore, "users", data.userID), {
+      cart: data.newCarts,
     });
     return true;
   } catch (err) {

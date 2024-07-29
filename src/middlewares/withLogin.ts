@@ -7,6 +7,7 @@ export const withLogin = async (req: NextRequest) => {
     secret: process.env.NEXTAUTH_SECRET,
   });
   if (token) {
+    console.log(token);
     return NextResponse.next();
   }
   return NextResponse.redirect(new URL("/auth/login", req.url));

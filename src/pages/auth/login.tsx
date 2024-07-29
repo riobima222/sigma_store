@@ -4,6 +4,7 @@ import Label from "@/components/ui/label";
 import { signIn } from "next-auth/react";
 import Head from "next/head";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useRouter } from "next/router";
 import { FormEvent, useState } from "react";
 import { FaGoogle } from "react-icons/fa";
@@ -16,6 +17,7 @@ const LoginPage = () => {
   const [isLoginSucces, setIsLoginSucces] = useState(false);
   const [loginFailed, setLoginFailed] = useState(false);
   const { push } = useRouter();
+  const searchParams = useSearchParams();
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -28,12 +30,17 @@ const LoginPage = () => {
       password: form.password.value,
     });
     if (res?.ok) {
+      const returnUrl = searchParams.get("returnUrl");
       setIsLoading(false);
       setAlertMessage("Berhasil Login");
       setIsLoginSucces(true);
       setTimeout(() => {
         setIsLoginSucces(false);
         setTimeout(() => {
+          if(returnUrl) {
+            push(returnUrl);
+            return;
+          }
           push("/admin");
         }, 500);
       }, 3000);

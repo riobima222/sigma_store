@@ -11,6 +11,7 @@ interface InputProps {
   defaultChecked?: boolean;
   required?: boolean;
   onChange?: (e: any) => any;
+  onClick?: (e:any) => any;
 }
 const Input = (props: InputProps) => {
   const {
@@ -26,6 +27,7 @@ const Input = (props: InputProps) => {
     disabled,
     required,
     onChange,
+    onClick,
   } = props;
   const style = `bg-slate-100 w-full px-2 py-1 focus:outline-none text-sm`;
   return (
@@ -42,6 +44,7 @@ const Input = (props: InputProps) => {
       value={value}
       defaultChecked={defaultChecked}
       required={required}
+      onClick={onClick}
     />
   );
 };

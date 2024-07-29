@@ -20,7 +20,7 @@ const Sidebar = () => {
             } rounded-md px-1 py-1 flex justify-start items-center hover:bg-white hover:text-black`}
           >
             <MdDashboardCustomize className="me-2" />
-            <span>Dashboard</span>
+            <span>Member dashboard</span>
           </Link>
           <Link
             href="/member/order"

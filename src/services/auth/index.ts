@@ -12,58 +12,77 @@ export const dataServices = {
 };
 
 export const userServices = {
-  updateUser(data: { username: string; role: string }, token: string) {
-    return instance.put("/api/user/updateuser", data, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+  updateUser(data: { username: string; role: string }) {
+    return instance.put("/api/user/updateuser", data);
   },
-  deleteUser(username: string, token: string) {
-    return instance.delete(`/api/user/deleteuser/${username}`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+  deleteUser(username: string) {
+    return instance.delete(`/api/user/deleteuser/${username}`);
   },
-  getProfile(token: string) {
-    return instance.get("/api/user/getprofile", {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+  getProfile() {
+    return instance.get("/api/user/getprofile");
   },
-  updateProfile(token: string, imageURL: { imageURL: string }) {
-    return instance.put(`/api/user/updateprofile/`, imageURL, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+  updateProfile(imageURL: { imageURL: string }) {
+    return instance.put(`/api/user/updateprofile/`, imageURL);
   },
-  updateDataProfile(
-    token: string,
-    newDataUpdate: { username: string; newUsername: string; phone: number }
-  ) {
-    return instance.put("/api/user/updatedataprofile", newDataUpdate, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+  updateDataProfile(newDataUpdate: {
+    username: string;
+    newUsername: string;
+    phone: number;
+  }) {
+    return instance.put("/api/user/updatedataprofile", newDataUpdate);
   },
-  changePassword(
-    token: string,
-    data: { oldPassword: string; newPassword: string }
-  ) {
-    return instance.put("/api/user/changepassword", data, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+  changePassword(data: { oldPassword: string; newPassword: string }) {
+    return instance.put("/api/user/changepassword", data);
+  },
+  addAddress(data: {
+    recipient: string;
+    addressLine: string;
+    phone: string;
+    note: string;
+  }) {
+    return instance.put("/api/user/addaddress", data);
+  },
+  updateAddress(data: any) {
+    return instance.put("/api/user/updateaddress", data);
   },
 };
 
 export const productsServices = {
   getAllProducts() {
     return instance.get("/api/product/getproducts");
-  }
-}
+  },
+  addProduct(data: {
+    name: string;
+    price: number;
+    image: any;
+    category: string;
+    status: string;
+    stock: { size: string; qwt: string }[];
+  }) {
+    return instance.put("/api/product/addproduct", data);
+  },
+  updateProductImage(data: { imageUrl: string; productID: string }) {
+    return instance.put("/api/product/updateproductimage", data);
+  },
+  updateProduct(data: any) {
+    return instance.put("/api/product/updateproduct", data);
+  },
+  deleteProduct(productID: string) {
+    return instance.delete(`/api/product/deleteproduct/${productID}`);
+  },
+  getOneProduct(id: string) {
+    return instance.get("/api/product/getoneproduct/" + id);
+  },
+};
+
+export const cartServices = {
+  addToCart(data: any) {
+    return instance.post("/api/cart", data);
+  },
+  getCarts() {
+    return instance.get("/api/cart");
+  },
+  deleteCart(data: any) {
+    return instance.put(`/api/cart`, data);
+  },
+};

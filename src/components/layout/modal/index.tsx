@@ -1,4 +1,5 @@
 import { modalContext } from "@/context/modalAppears";
+import { ModalUpdateProductContext } from "@/context/modalUpdateProduct";
 import React, { MouseEventHandler, useContext, useRef } from "react";
 
 const Modal = ({
@@ -6,13 +7,17 @@ const Modal = ({
   className,
 }: {
   children: React.ReactNode;
-  className: string;
+  className?: string;
 }) => {
   const { setModalAppear }: any = useContext(modalContext);
+  const { setModalUpdateProductAppear }: any = useContext(
+    ModalUpdateProductContext
+  );
   const modalRef = useRef(null);
   const Close: MouseEventHandler = (e) => {
     if (e.target === modalRef.current) {
       setModalAppear(false);
+      setModalUpdateProductAppear(false);
     }
   };
   return (

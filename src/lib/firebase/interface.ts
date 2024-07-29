@@ -26,3 +26,11 @@ export interface GoogleUser {
   role: string;
   login: string;
 }
+
+export interface AlamatBaru {
+  recipient: string;
+  addressLine: string;
+  phone: string;
+  note: string;
+  isMain?: boolean;
+}

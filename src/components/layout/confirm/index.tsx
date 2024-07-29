@@ -1,39 +1,67 @@
 import { AlertContext } from "@/context/alert";
 import { AlertMessageContext } from "@/context/alertMessage";
 import { DeleteAlertContext } from "@/context/deleteAlert";
-import { userServices } from "@/services/auth";
+import { DeleteProductAlertContext } from "@/context/deleteProductAlert";
+import { productsServices, userServices } from "@/services/auth";
 import { useSession } from "next-auth/react";
 import { useContext } from "react";
+import app from "@/lib/firebase/init";
+import { getStorage, ref, deleteObject } from "firebase/storage";
 
 interface Props {
   className?: string;
-  userData: any;
+  userData?: any;
+  from?: string;
+  productID?: any;
+  productURLImage?: string;
 }
 
-const Confirm = ({ className, userData }: Props) => {
+const Confirm = ({ className, userData, from, productID }: Props) => {
+  const storage = getStorage(app);
   const { data: session }: any = useSession();
   const { setDeleteAlert }: any = useContext(DeleteAlertContext);
-  const { alert, setAlert }: any = useContext(AlertContext);
-  const { alertMessage, setAlertMessage }: any =
-    useContext(AlertMessageContext);
+  const { setAlert }: any = useContext(AlertContext);
+  const { setDeleteProductAlert }: any = useContext(DeleteProductAlertContext);
+  const { setAlertMessage }: any = useContext(AlertMessageContext);
   const handleDeny = () => {
     setDeleteAlert(false);
+    setDeleteProductAlert(false);
   };
   const handleAccept = async () => {
-    const response = await userServices.deleteUser(
-      userData.username,
-      session.accessToken
-    );
-    if (response.data.statusCode === 200) {
-      setDeleteAlert(false);
-      setAlert(true);
-      setAlertMessage(response.data.message);
-      setTimeout(() => {
-        setAlert(false);
-        setAlertMessage("");
-      }, 2500);
+    if (from === "adminProduct") {
+      const response = await productsServices.deleteProduct(productID);
+      if (response.status === 200) {
+        setAlert(true);
+        setAlertMessage(response.data.message);
+        setDeleteProductAlert(false);
+        setTimeout(() => {
+          setAlert(false);
+          setAlertMessage("");
+        }, 2500);
+        const filePath = `images/product/${productID}/product.jpg`;
+        const storageRef = ref(storage, filePath);
+        try {
+          await deleteObject(storageRef);
+          console.log("berhasil menghapus image");
+        } catch (err) {
+          console.log("ada yang error kawaw");
+        }
+      } else {
+        console.log(response);
+      }
     } else {
-      console.log(response);
+      const response = await userServices.deleteUser(userData.username);
+      if (response.data.statusCode === 200) {
+        setDeleteAlert(false);
+        setAlert(true);
+        setAlertMessage(response.data.message);
+        setTimeout(() => {
+          setAlert(false);
+          setAlertMessage("");
+        }, 2500);
+      } else {
+        console.log(response);
+      }
     }
   };
   return (

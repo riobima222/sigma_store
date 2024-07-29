@@ -19,19 +19,20 @@ import ModalConfirm from "@/components/layout/modalConfirm";
 // Icons Imports
 import { IoEyeSharp } from "react-icons/io5";
 import { FaEyeSlash } from "react-icons/fa";
+import Alert from "@/components/alert";
 
 const Profile = () => {
   const { data: session }: any = useSession();
 
   // state
-  const [profile, setProfile]: any = useState(false);
+  const [profile, setProfile]: any = useState();
   const [profileImage, setProfileImage] = useState<any>(false);
   const [alert, setAlert] = useState(false);
   const [alertMessage, setAlertMessage] = useState("");
   const [wrongPassword, setWrongPassword] = useState(false);
   const [newDataUpdate, setNewDataUpdate] = useState<any>({});
-  const [username, setUsername] = useState(false);
-  const [phone, setPhone] = useState(false);
+  const [username, setUsername]: any = useState();
+  const [phone, setPhone]: any = useState();
   const [oldPassword, setOldPassword] = useState(false);
   const [newPassword, setNewPassword] = useState(false);
 
@@ -42,7 +43,7 @@ const Profile = () => {
   useEffect(() => {
     if (session) {
       const retriveProfile = async () => {
-        const res = await userServices.getProfile(session?.accessToken);
+        const res = await userServices.getProfile();
         setProfile(res.data.data);
         setUsername(res.data.data.username);
         setPhone(res.data.data.phone);
@@ -74,10 +75,9 @@ const Profile = () => {
           setProfile({ ...profile, image: downloadURL });
           const profileImageUpdate = async () => {
             try {
-              const response = await userServices.updateProfile(
-                session?.accessToken,
-                { imageURL: downloadURL }
-              );
+              const response = await userServices.updateProfile({
+                imageURL: downloadURL,
+              });
               if (response.status === 200) {
                 setProfileImage(false);
                 setAlert(true);
@@ -107,10 +107,7 @@ const Profile = () => {
     });
   };
   const handleUpdateButton = async () => {
-    const response = await userServices.updateDataProfile(
-      session?.accessToken,
-      newDataUpdate
-    );
+    const response = await userServices.updateDataProfile(newDataUpdate);
     setModalConfirmAlert(false);
     if (response.status === 200) {
       setAlert(true);
@@ -125,19 +122,24 @@ const Profile = () => {
   const handleChangePassword = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const form = e.target as HTMLFormElement;
-    const response = await userServices.changePassword(session?.accessToken, {
+    const data = {
       oldPassword: form.oldpassword.value,
       newPassword: form.newpassword.value,
-    });
+    };
+    const response = await userServices.changePassword(data);
+    console.log(response);
     if (response.data.statusCode === 200) {
       setAlert(true);
       setAlertMessage(response.data.message);
       setTimeout(() => {
+        form.oldpassword.valuw = "";
+        form.newpassword.valuw = "";
         setAlert(false);
         setAlertMessage("");
       }, 2000);
     } else {
       setWrongPassword(true);
+      form.oldpassword.valuw = "";
       setTimeout(() => {
         setWrongPassword(false);
       }, 2500);
@@ -201,46 +203,46 @@ const Profile = () => {
           <Label htmlFor="username" className="text-base font-bold">
             username
           </Label>
-          <Input
+          <input
             id="username"
             name="username"
-            defaultValue={profile?.username || ""}
+            defaultValue={profile?.username}
             type="text"
-            className="rounded-md mb-2 h-10"
+            className="rounded-md mb-2 h-10 text-black bg-slate-100 w-full px-2 py-1 focus:outline-none text-sm"
             onChange={(e) => setUsername(e.target.value)}
           />
           <Label htmlFor="email" className="text-base font-bold">
             email
           </Label>
-          <Input
+          <input
             id="email"
             name="email"
             defaultValue={profile?.email}
             type="email"
-            className="rounded-md mb-2 text-gray-400 h-10"
+            className="rounded-md mb-2 text-gray-400 h-10 bg-slate-100 w-full px-2 py-1 focus:outline-none text-sm"
             disabled={true}
           />
           <Label htmlFor="phone" className="text-base font-bold">
             phone
           </Label>
-          <Input
+          <input
             id="phone"
             name="phone"
             defaultValue={profile?.phone}
             type="tel"
-            className="rounded-md mb-2 h-10"
+            className="rounded-md mb-2 h-10 bg-slate-100 w-full px-2 py-1 focus:outline-none text-sm"
             onChange={(e) => setPhone(e.target.value)}
             pattern="^(08)[0-9]{9,12}$"
           />
           <Label htmlFor="role" className="text-base font-bold">
             role
           </Label>
-          <Input
+          <input
             id="role"
             name="role"
             defaultValue={profile?.role}
             type="text"
-            className="rounded-md mb-2 text-gray-400 h-10"
+            className="rounded-md mb-2 text-gray-400 h-10 bg-slate-100 w-full px-2 py-1 focus:outline-none text-sm"
             disabled
           />
           <button
@@ -271,6 +273,7 @@ const Profile = () => {
                 name="oldpassword"
                 type={oldPassword ? "text" : "password"}
                 className="rounded-md h-10"
+                required={true}
               />
               {oldPassword ? (
                 <FaEyeSlash
@@ -301,17 +304,18 @@ const Profile = () => {
                 type={newPassword ? "text" : "password"}
                 className="rounded-md h-10"
                 pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$"
+                required={true}
               />
               {newPassword ? (
                 <FaEyeSlash
-                onClick={seeNewPassword}
-                className="cursor-pointer me-2 text-md w-6 h-6"
+                  onClick={seeNewPassword}
+                  className="cursor-pointer me-2 text-md w-6 h-6"
                 />
               ) : (
                 <IoEyeSharp
-                onClick={seeNewPassword}
-                className="cursor-pointer me-2 text-md w-6 h-6"
-              />
+                  onClick={seeNewPassword}
+                  className="cursor-pointer me-2 text-md w-6 h-6"
+                />
               )}
             </div>
             <button
@@ -355,27 +359,7 @@ const Profile = () => {
           </div>
         </div>
       </ModalConfirm>
-      <div
-        role="alert"
-        className={`${
-          alert ? "block" : "hidden"
-        } alert alert-success bg-slate-300 border-none absolute bottom-2 right-0 h-[2.7em] flex items-center px-3 max-w-[40em]`}
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          className="stroke-current shrink-0 h-6 w-6"
-          fill="none"
-          viewBox="0 0 24 24"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth="2"
-            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-          />
-        </svg>
-        <span>{alertMessage}</span>
-      </div>
+      <Alert alert={alert} alertMessage={alertMessage} />
     </div>
   );
 };

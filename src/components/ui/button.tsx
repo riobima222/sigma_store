@@ -3,7 +3,7 @@ interface Props {
   disabled?: boolean;
   className?: string;
   children: any;
-  onClick?: () => void;
+  onClick?: () => any;
 }
 
 const Button = (props: Props) => {
